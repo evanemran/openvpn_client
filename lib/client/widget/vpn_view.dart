@@ -7,11 +7,25 @@ import 'package:openvpn_client/client/widget/power_button.dart';
 import 'package:openvpn_client/commons/app_colors.dart';
 
 class VpnView extends GetView<VpnController> {
-  var statusText = "Unknown".obs;
+
+  Widget _buildFullServerList(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: controller.allServers.map((server) {
+        return ListTile(
+          title: Text(server,style: const TextStyle(
+              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),),
+          onTap: () {
+            controller .selectedServer.value = server;
+            Navigator.pop(context);
+          },
+        );
+      }).toList(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final statusText = controller.status.toString()=="null" ? "Disconnected" : controller.status.toString();
     return Scaffold(
       backgroundColor: AppColors.primaryColor,
       appBar: AppBar(
@@ -19,6 +33,7 @@ class VpnView extends GetView<VpnController> {
           leading: IconButton(onPressed: () {}, icon: ImageIcon(AssetImage("assets/images/menu_icon.png"), color: Colors.white,)),
           actions: [
             IconButton(onPressed: controller.selectOpenVpnFile, icon: ImageIcon(AssetImage("assets/images/add_icon.png"), color: Colors.white,)),
+            SizedBox(width: 4,)
           ],
           title: Text(
             'Quick VPN',
@@ -54,20 +69,6 @@ class VpnView extends GetView<VpnController> {
                   Obx(()=>Text("Server: ${controller.server ?? 'Not selected'}", style: TextStyle(color: Colors.white),)),
                   SizedBox(height: 10),
                   Obx(()=>Text("Connected on: ${controller.connectedOn ?? 'Not selected'}", style: TextStyle(color: Colors.white),)),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => controller.showServerSelector(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.2), // semi-transparent
-                      foregroundColor: Colors.white, // text/icon color
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0, // optional: remove shadow
-                    ),
-                    child: Text('Change Server'),
-                  ),
                   SizedBox(height: 10),
                   Row(
                     children: [
@@ -144,7 +145,27 @@ class VpnView extends GetView<VpnController> {
                 ],
               ),
             ),
-          )
+          ),
+          Positioned(bottom: 10, left: 16, right: 16 ,child: ElevatedButton(
+            onPressed: () {
+              showModalBottomSheet(
+                backgroundColor: AppColors.primaryColor,
+                context: context,
+                builder: (_) => _buildFullServerList(context),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white.withOpacity(0.2), // semi-transparent
+              foregroundColor: Colors.white, // text/icon color
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0, // optional: remove shadow
+              minimumSize: Size(MediaQuery.of(context).size.width*0.9, 20)
+            ),
+            child: Text('Change Server'),
+          )),
         ],
       ),
     );

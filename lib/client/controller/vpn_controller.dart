@@ -7,6 +7,7 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:openvpn_client/utils/date_utils.dart';
 import 'package:openvpn_client/utils/pref_utils.dart';
+import 'package:openvpn_client/utils/toast_utils.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
 
 import '../widget/servers_sheet.dart';
@@ -27,6 +28,9 @@ class VpnController extends GetxController {
   var packetsIn = "0.00".obs;
   var packetsOut = "0.00".obs;
 
+  var allServers = <String>['🏡 Home', '🏢 Office', '🖥️ Workstation'].obs;
+  var selectedServer = "".obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -38,7 +42,13 @@ class VpnController extends GetxController {
       },
       onVpnStageChanged: (vpnStage, stage) {
         if (vpnStage == VPNStage.connected) {
-          //ToDo
+          ToastUtils.showToast("Connected!!");
+        }
+        else if (vpnStage == VPNStage.disconnected) {
+          ToastUtils.showToast("Disconnected VPN!!");
+        }
+        else if (vpnStage == VPNStage.error) {
+          ToastUtils.showToast("Error Occurred!");
         }
         log.value += "Stage: $stage\n";
       },
@@ -54,6 +64,10 @@ class VpnController extends GetxController {
       connect(openVpnContent.value);
       isConnected.value = true;
     }
+  }
+
+  void updateSelectedServer(String server) {
+    selectedServer.value = server;
   }
 
   void showServerSelector(BuildContext context) {
@@ -84,7 +98,8 @@ class VpnController extends GetxController {
     if (path != null) {
       final file = File(path);
       final config = await file.readAsString();
-      connect(config);
+      openVpnContent.value = config;
+      toggleConnection();
     }
   }
 
@@ -100,18 +115,23 @@ class VpnController extends GetxController {
   }
 
   Future<void> connect(String config) async {
-    duration.value = "Connecting...";
-    final connectedServer = extractRemoteAddress(config);
-    server.value = connectedServer ?? "Private";
-    log.value = 'Loaded .ovpn for: $server\n';
 
-    await _vpn?.initialize(
-    groupIdentifier: "",
-    providerBundleIdentifier: "",
-    localizedDescription: "Flutter VPN",
-    );
+    try {
+      duration.value = "Connecting...";
+      final connectedServer = extractRemoteAddress(config);
+      server.value = connectedServer ?? "Private";
+      log.value = 'Loaded .ovpn for: $server\n';
 
-    _vpn?.connect(config, "vpn_profile", username: "", password: "");
+      await _vpn?.initialize(
+        groupIdentifier: "",
+        providerBundleIdentifier: "",
+        localizedDescription: "Flutter VPN",
+      );
+      _vpn?.connect(config, "vpn_profile", username: "", password: "");
+    }
+    catch (e) {
+      ToastUtils.showToast("Error Occurred!");
+    }
   }
 
   void disconnect() {

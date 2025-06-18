@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:openvpn_client/commons/app_colors.dart';
 import 'package:openvpn_flutter/openvpn_flutter.dart';
-
+import 'package:toastification/toastification.dart';
 import 'commons/app_routes.dart';
 
 void main() {
@@ -14,14 +14,16 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: "Quick VPN",
-      theme: ThemeData(
-        colorSchemeSeed: AppColors.primaryColor,
+    return ToastificationWrapper(
+      child: GetMaterialApp(
+        title: "Quick VPN",
+        theme: ThemeData(
+          colorSchemeSeed: AppColors.primaryColor,
+        ),
+        debugShowCheckedModeBanner: false,
+        initialRoute: AppRoutes.vpnPage,
+        getPages: AppRoutes.pages,
       ),
-      debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.vpnPage,
-      getPages: AppRoutes.pages,
     );
   }
 }
