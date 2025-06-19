@@ -61,6 +61,7 @@ class VpnView extends GetView<VpnController> {
                   SizedBox(height: 10),
                   Obx(() => PowerButton(
                     isConnected: controller.isConnected.value,
+                    isLoading: controller.isLoading.value,
                     onPressed: () {
                       controller.toggleConnection();
                     },

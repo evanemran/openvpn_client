@@ -20,6 +20,7 @@ class VpnController extends GetxController {
   var server = "Unknown".obs;
   var openVpnContent = "".obs;
   var isConnected = false.obs;
+  var isLoading = false.obs;
 
   var connectedOn = "N/A".obs;
   var duration = "Disconnected".obs;
@@ -37,18 +38,33 @@ class VpnController extends GetxController {
     initVpnProfile();
     _vpn = OpenVPN(
       onVpnStatusChanged: (data) {
-        status.value = data;
-        parseStatus(data!);
+        if(isConnected.value) {
+          status.value = data;
+          parseStatus(data!);
+        }
       },
       onVpnStageChanged: (vpnStage, stage) {
         if (vpnStage == VPNStage.connected) {
+          isConnected.value = true;
+          isLoading.value = false;
           ToastUtils.showToast("Connected!!");
         }
         else if (vpnStage == VPNStage.disconnected) {
+          isConnected.value = false;
+          isLoading.value = false;
+          duration.value = "Disconnected";
           ToastUtils.showToast("Disconnected VPN!!");
         }
         else if (vpnStage == VPNStage.error) {
+          isConnected.value = false;
+          isLoading.value = false;
+          duration.value = "Disconnected";
           ToastUtils.showToast("Error Occurred!");
+        }
+        else if (vpnStage == VPNStage.vpn_generate_config) {
+        isConnected.value = false;
+        isLoading.value = true;
+        duration.value = "Connecting...";
         }
         log.value += "Stage: $stage\n";
       },
@@ -62,7 +78,7 @@ class VpnController extends GetxController {
     }
     else {
       connect(openVpnContent.value);
-      isConnected.value = true;
+      // isConnected.value = true; //moved to connect
     }
   }
 
@@ -117,9 +133,8 @@ class VpnController extends GetxController {
   Future<void> connect(String config) async {
 
     try {
-      duration.value = "Connecting...";
       final connectedServer = extractRemoteAddress(config);
-      server.value = connectedServer ?? "Private";
+      server.value = connectedServer ?? "Unknown";
       log.value = 'Loaded .ovpn for: $server\n';
 
       await _vpn?.initialize(
@@ -130,6 +145,8 @@ class VpnController extends GetxController {
       _vpn?.connect(config, "vpn_profile", username: "", password: "");
     }
     catch (e) {
+      duration.value = "Disconnected";
+      log.value = 'Exception: ${e.toString()}\n';
       ToastUtils.showToast("Error Occurred!");
     }
   }
