@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:openvpn_client/commons/app_routes.dart';
 import 'package:openvpn_client/utils/date_utils.dart';
 import 'package:openvpn_client/utils/pref_utils.dart';
 import 'package:openvpn_client/utils/toast_utils.dart';
@@ -22,6 +25,8 @@ class VpnController extends GetxController {
   var isConnected = false.obs;
   var isLoading = false.obs;
 
+  final vpnStage = VPNStage.disconnected.obs;
+
   var connectedOn = "N/A".obs;
   var duration = "Disconnected".obs;
   var byteIn = "0.00".obs;
@@ -36,6 +41,7 @@ class VpnController extends GetxController {
   void onInit() {
     super.onInit();
     initVpnProfile();
+
     _vpn = OpenVPN(
       onVpnStatusChanged: (data) {
         if(isConnected.value) {
@@ -70,6 +76,24 @@ class VpnController extends GetxController {
       },
     );
   }
+
+  /*Future<void> restoreVpnState() async {
+    final currentStage = await openVPN.vpnStageSnapshot();
+    vpnStage.value = currentStage;
+
+    if (currentStage == VPNStage.connected) {
+      final stats = await openVPN.vpnStatsSnapshot();
+      byteIn.value = stats.byteIn;
+      byteOut.value = stats.byteOut;
+
+      final prefs = await SharedPreferences.getInstance();
+      connectedServer.value = prefs.getString('connected_server') ?? '';
+      final dateStr = prefs.getString('connected_on');
+      if (dateStr != null) {
+        connectedOn.value = DateTime.parse(dateStr);
+      }
+    }
+  }*/
 
   void toggleConnection() {
     if(isConnected.value) {
@@ -107,16 +131,11 @@ class VpnController extends GetxController {
     }
   }
 
-  Future<void> selectOpenVpnFile() async {
+  Future<void> initAddProfile() async {
 
-    final path = await PrefUtils().pickAndSaveOpenVpnFile();
-
-    if (path != null) {
-      final file = File(path);
-      final config = await file.readAsString();
-      openVpnContent.value = config;
-      toggleConnection();
-    }
+    final result = await Get.toNamed(AppRoutes.addProfilePage);
+    openVpnContent.value = result;
+    toggleConnection();
   }
 
   String? extractRemoteAddress(String config) {

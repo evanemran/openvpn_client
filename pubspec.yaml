@@ -71,6 +71,8 @@ flutter:
     - assets/images/up_icon.png
     - assets/images/down_icon.png
     - assets/images/background.png
+    - assets/images/ic_back.png
+    - assets/images/file_type.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

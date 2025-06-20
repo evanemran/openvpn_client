@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:openvpn_flutter/openvpn_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,5 +42,41 @@ class PrefUtils {
     if (!await file.exists()) return null;
 
     return file.readAsString();
+  }
+
+
+  Future<void> saveVpnStage(VPNStage stage) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('vpn_stage', stage.name); // saves as string like 'connected'
+  }
+
+  Future<void> saveVpnStats(VpnStatus stat) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('vpn_stats', jsonEncode(stat.toJson())); // saves as string like 'connected'
+  }
+
+  Future<VPNStage> loadVpnStage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stageStr = prefs.getString('vpn_stage');
+
+    // Fallback to disconnected if not found
+    return VPNStage.values.firstWhere(
+          (e) => e.name == stageStr,
+      orElse: () => VPNStage.disconnected,
+    );
+  }
+
+  Future<VpnStatus?> loadVpnStats() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStat = prefs.getString('vpn_stats');
+    if (jsonStat == null) return null;
+
+    final jsonMap = jsonDecode(jsonStat);
+    return VpnStatus(duration: "");
+  }
+
+  Future<void> clearVpnStage() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('vpn_stage');
   }
 }

@@ -32,7 +32,7 @@ class VpnView extends GetView<VpnController> {
           backgroundColor: AppColors.primaryColor,
           leading: IconButton(onPressed: () {}, icon: ImageIcon(AssetImage("assets/images/menu_icon.png"), color: Colors.white,)),
           actions: [
-            IconButton(onPressed: controller.selectOpenVpnFile, icon: ImageIcon(AssetImage("assets/images/add_icon.png"), color: Colors.white,)),
+            IconButton(onPressed: controller.initAddProfile, icon: ImageIcon(AssetImage("assets/images/add_icon.png"), color: Colors.white,)),
             SizedBox(width: 4,)
           ],
           title: Text(
